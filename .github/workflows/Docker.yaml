@@ -1,21 +1,9 @@
 name: Docker
 on:
+  push:
+    branches: [ main ]
   pull_request:
-    paths:
-      - "**"
-      - "!docs/**"
-      - "!README.md"
-      - "!CONTRIBUTING.md"
-      - "!.github/**"
-      - ".github/workflows/Docker.yaml"
-      - "!mkdocs.yml"
-      - "!pyproject.toml"
-      - "!poetry.lock"
-  workflow_dispatch:
-    inputs:
-      version:
-        description: version of the scenario_simulator_v2
-        required: true
+    branches: [ main ]
 
 jobs:
   push_docker:
