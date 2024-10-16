@@ -1,2 +1,0 @@
-ament_add_gtest(test_quaternion test_quaternion.cpp)
-target_link_libraries(test_quaternion geometry)

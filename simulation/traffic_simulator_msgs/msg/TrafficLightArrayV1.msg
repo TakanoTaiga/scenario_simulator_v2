@@ -1,1 +1,0 @@
-traffic_simulator_msgs/TrafficLightV1[] traffic_lights
