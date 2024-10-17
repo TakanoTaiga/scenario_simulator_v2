@@ -32,9 +32,7 @@ RUN vcs import external < dependency_${ROS_DISTRO}.repos
 WORKDIR /home/ubuntu/Desktop/scenario_simulator_ws/src
 RUN --mount=type=cache,id=apt-cache-arm64,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=apt-lib-arm64,target=/var/lib/apt,sharing=locked \
-    source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && apt-get update \
-    && rosdep install -iy --from-paths ./ --rosdistro ${ROS_DISTRO}
+    bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && apt-get update && rosdep install -iy --from-paths . --rosdistro ${ROS_DISTRO}"
 
 WORKDIR /home/ubuntu/Desktop/scenario_simulator_ws
 
