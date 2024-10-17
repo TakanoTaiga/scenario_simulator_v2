@@ -7,9 +7,6 @@ FROM ros:humble AS build-stage
 COPY --from=mimic-host / /mimic-cross
 RUN /mimic-cross/mimic-cross.deno/setup.sh
 
-SHELL ["/bin/bash", "-c"]
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBCONF_NOWARNINGS=yes
 
 RUN --mount=type=cache,id=apt-cache-arm64,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=apt-lib-arm64,target=/var/lib/apt,sharing=locked \
@@ -37,7 +34,7 @@ RUN --mount=type=cache,id=apt-cache-arm64,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=apt-lib-arm64,target=/var/lib/apt,sharing=locked \
     source /opt/ros/${ROS_DISTRO}/setup.bash \
     && apt-get update \
-    && rosdep install -iy --from-paths . --rosdistro ${ROS_DISTRO}
+    && rosdep install -iy --from-paths ./ --rosdistro ${ROS_DISTRO}
 
 WORKDIR /home/ubuntu/Desktop/scenario_simulator_ws
 
