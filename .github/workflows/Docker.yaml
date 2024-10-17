@@ -39,6 +39,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: ZYUMON TIME
+        run:
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker buildx create --use
+          docker buildx inspect --bootstrap
+
       - name: Build (${{ matrix.arch }})
         uses: docker/bake-action@v3
         with:
