@@ -44,16 +44,17 @@ jobs:
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
           docker buildx create --use
           docker buildx inspect --bootstrap
+          docker buildx build --file Dockerfile --platform linux/arm64/v8 -t takanotaiga/mimic_test:humble --build-arg ROS_DISTRO=humble .
 
-      - name: Build (${{ matrix.arch }})
-        uses: docker/bake-action@v3
-        with:
-          files: |
-            ./docker-bake.hcl
-          workdir: .
-          set: |
-            *.cache-to=type=gha,mode=max
-            *.cache-from=type=gha
-          push: false
-          targets: |
-            ${{ matrix.rosdistro }}_base_${{ matrix.arch }}
+      # - name: Build (${{ matrix.arch }})
+      #   uses: docker/bake-action@v3
+      #   with:
+      #     files: |
+      #       ./docker-bake.hcl
+      #     workdir: .
+      #     set: |
+      #       *.cache-to=type=gha,mode=max
+      #       *.cache-from=type=gha
+      #     push: false
+      #     targets: |
+      #       ${{ matrix.rosdistro }}_base_${{ matrix.arch }}
