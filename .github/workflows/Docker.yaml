@@ -1,9 +1,21 @@
 name: Docker
 on:
-  push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
+    paths:
+      - "**"
+      - "!docs/**"
+      - "!README.md"
+      - "!CONTRIBUTING.md"
+      - "!.github/**"
+      - ".github/workflows/Docker.yaml"
+      - "!mkdocs.yml"
+      - "!pyproject.toml"
+      - "!poetry.lock"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: version of the scenario_simulator_v2
+        required: true
 
 jobs:
   push_docker:
@@ -13,7 +25,11 @@ jobs:
     strategy:
       matrix:
         rosdistro: [humble]
-        arch: [arm64]
+        arch: [amd64, arm64]
+        # Build test for arm64 CPU is broken.
+        # This is a temporary solution and will be repaired in the future.
+        # See also https://github.com/tier4/scenario_simulator_v2/pull/1295
+        # arch: [amd64, arm64]
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
@@ -34,20 +50,32 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: ZYUMON TIME
-        run:
-          docker buildx build --platform linux/arm64/v8,linux/amd64 -t ghcr.io/TakanoTaiga/scenario_simulator_v2:humble --build-arg ROS_DISTRO=humble --push .
-          
-      # - name: ZYUMON TIME
-      #   run:
-      #     docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      #     docker buildx create --use
-      #     docker buildx inspect --bootstrap
 
-      # - name: Build (${{ matrix.arch }})
-      #   uses: docker/bake-action@v5
-      #   with:
-      #     files: |
-      #       ./docker-bake.hcl
-      #     push: false
+      - name: Build (${{ matrix.arch }})
+        if: github.event_name == 'pull_request'
+        uses: docker/bake-action@v3
+        with:
+          files: |
+            ./docker-bake.hcl
+          workdir: .
+          set: |
+            *.cache-to=type=gha,mode=max
+            *.cache-from=type=gha
+          push: false
+          targets: |
+            ${{ matrix.rosdistro }}_base_${{ matrix.arch }}
+
+      - name: Build and push (${{ matrix.arch }})
+        if: github.event_name == 'workflow_dispatch'
+        uses: docker/bake-action@v3
+        with:
+          files: |
+            ./docker-bake.hcl
+          workdir: .
+          set: |
+            *.cache-to=type=gha,mode=max
+            *.cache-from=type=gha
+            *.tags=ghcr.io/tier4/scenario_simulator_v2:humble-${{ github.event.inputs.version }}
+          push: true
+          targets: |
+            ${{ matrix.rosdistro }}_base_${{ matrix.arch }}

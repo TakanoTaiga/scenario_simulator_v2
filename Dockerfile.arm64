@@ -2,15 +2,10 @@ ARG ROS_DISTRO="humble"
 
 # cspell: ignore impactaky deno BUILDPLATFORM TARGETARCH
 
-
-FROM --platform=${BUILDPLATFORM} impactaky/mc-ubuntu22.04-${TARGETARCH}-host as mimic-host
-FROM ros:${ROS_DISTRO} as build-stage
+FROM --platform=${BUILDPLATFORM} impactaky/mc-ubuntu22.04-${TARGETARCH}-host AS mimic-host
+FROM ros:humble
 COPY --from=mimic-host / /mimic-cross
 RUN /mimic-cross/mimic-cross.deno/setup.sh
-
-SHELL ["/bin/bash", "-c"]
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBCONF_NOWARNINGS=yes
 
 RUN --mount=type=cache,id=apt-cache-arm64,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=apt-lib-arm64,target=/var/lib/apt,sharing=locked \
