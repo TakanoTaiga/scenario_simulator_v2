@@ -1,8 +1,8 @@
-name: Docker
+name: Push Docker Image
 on:
   push:
     branches:
-      - master 
+      - master
       - main
 
 jobs:
@@ -13,24 +13,22 @@ jobs:
     strategy:
       matrix:
         rosdistro: [humble]
-        arch: [amd64, arm64]
-        # Build test for arm64 CPU is broken.
-        # This is a temporary solution and will be repaired in the future.
-        # See also https://github.com/tier4/scenario_simulator_v2/pull/1295
-        # arch: [amd64, arm64]
+        arch: [arm64]
+
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
 
-      - name: Install docker for ubuntu runner
+      - name: Install Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Install QEMU
+      - name: Install QEMU for Multi-Arch Builds
         uses: docker/setup-qemu-action@v3
 
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -39,22 +37,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: ZYUMON TIME
-        run:
+      - name: Setup and Build Docker Image
+        run: |
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
           docker buildx create --use
           docker buildx inspect --bootstrap
-          docker buildx build --file Dockerfile --platform linux/arm64/v8 -t takanotaiga/mimic_test:humble --build-arg ROS_DISTRO=humble .
-
-      # - name: Build (${{ matrix.arch }})
-      #   uses: docker/bake-action@v3
-      #   with:
-      #     files: |
-      #       ./docker-bake.hcl
-      #     workdir: .
-      #     set: |
-      #       *.cache-to=type=gha,mode=max
-      #       *.cache-from=type=gha
-      #     push: false
-      #     targets: |
-      #       ${{ matrix.rosdistro }}_base_${{ matrix.arch }}
+          docker buildx build --file Dockerfile.arm64 --platform linux/arm64/v8 -t takanotaiga/mimic_test:${{ matrix.rosdistro }} --build-arg ROS_DISTRO=${{ matrix.rosdistro }} .
